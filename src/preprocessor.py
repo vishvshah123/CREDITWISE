@@ -10,6 +10,7 @@ class Preprocessor:
         self.label_encoders = {}
         self.imputation_values = {}
         self.feature_cols = []
+        self.cols_to_scale = []
         
     def handle_missing_values(self, df):
         """Impute missing values: Median for numerical, Mode for categorical."""
@@ -19,14 +20,14 @@ class Preprocessor:
         for col in NUMERICAL_COLS:
             if col in df.columns and df[col].isnull().any():
                 val = df[col].median()
-                df[col].fillna(val, inplace=True)
+                df[col] = df[col].fillna(val)
                 self.imputation_values[col] = val
                 
         # Categorical
         for col in CATEGORICAL_COLS:
             if col in df.columns and df[col].isnull().any():
                 val = df[col].mode()[0]
-                df[col].fillna(val, inplace=True)
+                df[col] = df[col].fillna(val)
                 self.imputation_values[col] = val
                 
         return df
@@ -47,12 +48,12 @@ class Preprocessor:
                     
         # Dependents (3+ to 3) and make numeric
         if 'Dependents' in df.columns:
-            df['Dependents'] = df['Dependents'].astype(str).str.replace('3+', '3').astype(int)
+            df['Dependents'] = df['Dependents'].astype(str).str.replace('3+', '3', regex=False).astype(int)
             
-        # One Hot Encoding
+        # One Hot Encoding manually to avoid single-row inference issues
         if 'Property_Area' in df.columns:
-            dummies = pd.get_dummies(df['Property_Area'], prefix='Property', drop_first=True)
-            df = pd.concat([df, dummies], axis=1)
+            df['Property_Semiurban'] = (df['Property_Area'] == 'Semiurban').astype(int)
+            df['Property_Urban'] = (df['Property_Area'] == 'Urban').astype(int)
             df.drop('Property_Area', axis=1, inplace=True)
             
         # Drop ID
@@ -65,14 +66,13 @@ class Preprocessor:
         """Standardize numerical columns."""
         df = df.copy()
         
-        # All columns except target and binary categorical
-        num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-        cols_to_scale = [c for c in num_cols if df[c].nunique() > 2]
-        
         if fit:
-            df[cols_to_scale] = self.scaler.fit_transform(df[cols_to_scale])
+            num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+            self.cols_to_scale = [c for c in num_cols if df[c].nunique() > 2]
+            df[self.cols_to_scale] = self.scaler.fit_transform(df[self.cols_to_scale])
         else:
-            df[cols_to_scale] = self.scaler.transform(df[cols_to_scale])
+            if self.cols_to_scale:
+                df[self.cols_to_scale] = self.scaler.transform(df[self.cols_to_scale])
             
         self.feature_cols = df.columns.tolist()
         return df
