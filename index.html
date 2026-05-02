@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CreditWise Loan Approval System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CreditWise</h1>
+            <p>Risk Assessment & Decision Intelligence</p>
+        </header>
+
+        <main class="grid-layout">
+            <section class="form-section">
+                <h2>Applicant Details</h2>
+                <form id="loanForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="Gender">Gender</label>
+                            <select id="Gender" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="Married">Married</label>
+                            <select id="Married" required>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="Dependents">Dependents</label>
+                            <select id="Dependents" required>
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3+">3+</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="Education">Education</label>
+                            <select id="Education" required>
+                                <option value="Graduate">Graduate</option>
+                                <option value="Not Graduate">Not Graduate</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="Self_Employed">Self Employed</label>
+                            <select id="Self_Employed" required>
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="Property_Area">Property Area</label>
+                            <select id="Property_Area" required>
+                                <option value="Urban">Urban</option>
+                                <option value="Semiurban">Semiurban</option>
+                                <option value="Rural">Rural</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h3>Financial Profile</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ApplicantIncome">Applicant Income ($/mo)</label>
+                            <input type="number" id="ApplicantIncome" value="5000" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="CoapplicantIncome">Co-Applicant Income ($/mo)</label>
+                            <input type="number" id="CoapplicantIncome" value="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="LoanAmount">Loan Amount (in Thousands)</label>
+                            <input type="number" id="LoanAmount" value="150" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="Loan_Amount_Term">Loan Term (Months)</label>
+                            <input type="number" id="Loan_Amount_Term" value="360" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="Credit_History">Credit History</label>
+                        <select id="Credit_History" required>
+                            <option value="1.0">Good (Meets guidelines)</option>
+                            <option value="0.0">Bad (Defaults/Delinquencies)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" id="submitBtn">Run Assessment</button>
+                </form>
+            </section>
+
+            <section class="result-section">
+                <h2>Assessment Results</h2>
+                
+                <div id="loading" class="hidden">
+                    <div class="spinner"></div>
+                    <p>Processing ML Model Inference...</p>
+                </div>
+
+                <div id="resultsContent" class="hidden">
+                    <div id="decisionCard" class="card">
+                        <h3 id="predictionText">Decision Pending</h3>
+                        <p id="probabilityText" class="sub-text">Probability: --</p>
+                    </div>
+
+                    <div class="card risk-card">
+                        <h4>Credit Risk Score</h4>
+                        <div class="progress-bar-container">
+                            <div id="riskBar" class="progress-bar"></div>
+                        </div>
+                        <p id="riskScoreText">0.00 / 1.00</p>
+                        <p class="risk-legend">Lower score indicates better creditworthiness</p>
+                    </div>
+
+                    <div class="card explainer-card">
+                        <h4>Model Explanation (SHAP)</h4>
+                        <p class="sub-text">Top factors influencing this decision:</p>
+                        <ul id="shapList" class="factor-list">
+                        </ul>
+                    </div>
+                </div>
+                
+                <div id="initialState" class="initial-state">
+                    <p>Fill out the application form to generate a risk assessment.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
