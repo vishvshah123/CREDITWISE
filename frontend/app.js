@@ -37,7 +37,14 @@ document.getElementById('loanForm').addEventListener('submit', async (e) => {
         });
 
         if (!response.ok) {
-            throw new Error(`API Error: ${response.status}`);
+            let errorDetail = `API Error: ${response.status}`;
+            try {
+                const errorJson = await response.json();
+                errorDetail = errorJson.detail || JSON.stringify(errorJson);
+            } catch (e) {
+                // Ignore JSON parse error if response is not JSON
+            }
+            throw new Error(errorDetail);
         }
 
         const data = await response.json();

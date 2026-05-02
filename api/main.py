@@ -73,6 +73,12 @@ def predict_loan(app_data: LoanApplication):
         if 'Gender' in df.columns:
             df.drop('Gender', axis=1, inplace=True)
             
+        # Ensure exact column order and presence
+        for col in config['feature_cols']:
+            if col not in df.columns:
+                df[col] = 0
+        df = df[config['feature_cols']]
+            
         X_scaled = preprocessor.scale_features(df, fit=False)
         
         # Predict
