@@ -46,7 +46,7 @@ document.getElementById('loanForm').addEventListener('submit', async (e) => {
         updateResults(data);
 
     } catch (error) {
-        alert("Failed to connect to the backend API. Ensure FastAPI is running on http://127.0.0.1:8000.");
+        alert("Failed to connect to the backend API. The Render server might be waking up or still deploying. Please wait 30 seconds and try again. Error: " + error.message);
         console.error(error);
         initialState.classList.remove('hidden');
     } finally {
