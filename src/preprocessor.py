@@ -37,7 +37,7 @@ class Preprocessor:
         df = df.copy()
         
         # Label Encoding for Ordinal or Binary
-        label_cols = ['Gender', 'Married', 'Education', 'Self_Employed']
+        label_cols = ['Married', 'Education', 'Self_Employed']
         for col in label_cols:
             if col in df.columns:
                 if col not in self.label_encoders:
@@ -55,6 +55,11 @@ class Preprocessor:
             df['Property_Semiurban'] = (df['Property_Area'] == 'Semiurban').astype(int)
             df['Property_Urban'] = (df['Property_Area'] == 'Urban').astype(int)
             df.drop('Property_Area', axis=1, inplace=True)
+            
+        if 'Loan_Purpose' in df.columns:
+            df['Purpose_Refinancing'] = (df['Loan_Purpose'] == 'Refinancing').astype(int)
+            df['Purpose_Home_Improvement'] = (df['Loan_Purpose'] == 'Home Improvement').astype(int)
+            df.drop('Loan_Purpose', axis=1, inplace=True)
             
         # Drop ID
         if ID_COL in df.columns:

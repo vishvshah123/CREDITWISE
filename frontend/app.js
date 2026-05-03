@@ -14,7 +14,7 @@ document.getElementById('loanForm').addEventListener('submit', async (e) => {
 
     // Gather Form Data
     const formData = {
-        Gender: document.getElementById('Gender').value,
+        Loan_Purpose: document.getElementById('Loan_Purpose').value,
         Married: document.getElementById('Married').value,
         Dependents: document.getElementById('Dependents').value,
         Education: document.getElementById('Education').value,
@@ -24,7 +24,10 @@ document.getElementById('loanForm').addEventListener('submit', async (e) => {
         LoanAmount: parseFloat(document.getElementById('LoanAmount').value),
         Loan_Amount_Term: parseFloat(document.getElementById('Loan_Amount_Term').value),
         Credit_History: parseFloat(document.getElementById('Credit_History').value),
-        Property_Area: document.getElementById('Property_Area').value
+        Property_Area: document.getElementById('Property_Area').value,
+        Existing_Debt: parseFloat(document.getElementById('Existing_Debt').value),
+        Credit_Utilization: parseFloat(document.getElementById('Credit_Utilization').value),
+        Employment_Stability: parseFloat(document.getElementById('Employment_Stability').value)
     };
 
     try {

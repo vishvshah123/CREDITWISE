@@ -10,9 +10,10 @@ from src.config import MODELS_DIR
 class ModelTrainer:
     def __init__(self):
         self.models = {
-            'Logistic Regression': LogisticRegression(class_weight='balanced', random_state=42),
-            'Random Forest': RandomForestClassifier(n_estimators=100, class_weight='balanced', random_state=42),
-            'XGBoost': XGBClassifier(eval_metric='logloss', random_state=42)
+            'Logistic Regression': LogisticRegression(class_weight='balanced', max_iter=1000, random_state=42),
+            # Restrict depth and features to force trees to learn from other financial parameters, not just Credit_History
+            'Random Forest': RandomForestClassifier(n_estimators=150, max_depth=6, max_features=0.4, min_samples_leaf=4, class_weight='balanced', random_state=42),
+            'XGBoost': XGBClassifier(eval_metric='logloss', max_depth=4, colsample_bytree=0.5, subsample=0.8, random_state=42)
         }
         self.best_model = None
         self.best_model_name = None

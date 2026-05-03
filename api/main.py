@@ -36,7 +36,6 @@ except Exception as e:
     model, preprocessor, engineer, config, opt_threshold = None, None, None, None, 0.5
 
 class LoanApplication(BaseModel):
-    Gender: str
     Married: str
     Dependents: str
     Education: str
@@ -47,6 +46,10 @@ class LoanApplication(BaseModel):
     Loan_Amount_Term: float
     Credit_History: float
     Property_Area: str
+    Existing_Debt: float
+    Credit_Utilization: float
+    Employment_Stability: float
+    Loan_Purpose: str
 
 @app.get("/")
 def read_root():

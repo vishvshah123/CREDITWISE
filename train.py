@@ -30,32 +30,24 @@ def run_training():
     # Fill remaining NaNs (if any division by zero)
     df.fillna(0, inplace=True)
     
-    # 4. Bias Detection & Mitigation
-    mitigator = BiasMitigator(protected_attribute='Gender')
-    weights = mitigator.compute_reweighting(df, TARGET_COL)
-    print("Computed sample reweighting for Bias Mitigation.")
-    
-    # Drop protected attribute from features
-    if 'Gender' in df.columns:
-        df.drop('Gender', axis=1, inplace=True)
-    
-    # 5. Train/Test Split & Scaling
+    # User requested removing gender/bias logic entirely to trust the features
+    # 4. Train/Test Split & Scaling
     X = df.drop(TARGET_COL, axis=1)
     y = df[TARGET_COL]
     
-    X_train, X_test, y_train, y_test, w_train, w_test = train_test_split(
-        X, y, weights, test_size=0.2, random_state=42, stratify=y
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
     )
     
     X_train = preprocessor.scale_features(X_train, fit=True)
     X_test = preprocessor.scale_features(X_test, fit=False)
     print(f"Data split and scaled. Training size: {X_train.shape}")
     
-    # 6. Model Training
+    # 5. Model Training
     trainer = ModelTrainer()
-    trainer.train_all(X_train, y_train, sample_weights=w_train)
+    trainer.train_all(X_train, y_train)
     
-    # 7. Evaluation & Optimization
+    # 6. Evaluation & Optimization
     results = trainer.evaluate_all(X_test, y_test)
     print("\nModel Performance:")
     print(results.to_string(index=False))
