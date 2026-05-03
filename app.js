@@ -41,18 +41,29 @@ document.getElementById('loanForm').addEventListener('submit', async e => {
     lastFormData = collectFormData();
 
     try {
-        const [predRes, cfRes] = await Promise.all([
-            fetch(`${API}/predict`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(lastFormData) }),
-            fetch(`${API}/counterfactual`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(lastFormData) })
-        ]);
+        const predRes = await fetch(`${API}/predict`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(lastFormData)
+        });
 
         if (!predRes.ok) {
-            const err = await predRes.json();
+            const err = await predRes.json().catch(() => ({}));
             throw new Error(err.detail || `API Error ${predRes.status}`);
         }
 
         const predData = await predRes.json();
-        const cfData = cfRes.ok ? await cfRes.json() : null;
+
+        // Fetch counterfactual separately so its failure doesn't block the main result
+        let cfData = null;
+        try {
+            const cfRes = await fetch(`${API}/counterfactual`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(lastFormData)
+            });
+            if (cfRes.ok) cfData = await cfRes.json();
+        } catch (cfErr) { console.warn('Counterfactual skipped:', cfErr); }
 
         baseProb = predData.probability;
         renderResults(predData, cfData);
@@ -64,7 +75,7 @@ document.getElementById('loanForm').addEventListener('submit', async e => {
         document.getElementById('live-score-value').style.color = predData.prediction === 'Approved' ? 'var(--primary)' : 'var(--danger)';
 
     } catch (err) {
-        alert(`Failed to connect: ${err.message}\n\nThe Render server may be waking up. Wait 30 seconds and try again.`);
+        alert(`Connection failed: ${err.message}\n\nThe Render server may be waking up. Please wait 30 seconds and try again.`);
         console.error(err);
     } finally {
         btn.disabled = false;
@@ -124,8 +135,10 @@ function renderResults(data, cfData) {
     gapEl.textContent = gap > 0 ? `+${(gap * 100).toFixed(1)}%` : 'Within Range';
     gapEl.style.color = gap > 0 ? 'var(--danger)' : 'var(--primary)';
 
-    // SHAP Waterfall Chart
-    renderSHAPChart(data.explanation.all_factors, 'shapChart');
+    // SHAP Waterfall Chart — fall back to top_factors if backend is old version
+    const factors = (data.explanation && data.explanation.all_factors) ||
+                    (data.explanation && data.explanation.top_factors) || [];
+    renderSHAPChart(factors, 'shapChart');
 
     // Counterfactual
     if (cfData && !approved && cfData.recommendations && cfData.recommendations.length > 0) {
@@ -258,6 +271,7 @@ async function runWhatIf() {
         });
         if (!res.ok) return;
         const data = await res.json();
+        if (!data || !data.explanation) return;
 
         const approved = data.prediction === 'Approved';
         const wiBanner = document.getElementById('wi-decision-banner');
@@ -271,7 +285,9 @@ async function runWhatIf() {
         deltaEl.textContent = `${delta >= 0 ? '+' : ''}${(delta * 100).toFixed(1)}%`;
         deltaEl.className = `delta-value ${delta > 0.01 ? 'positive' : delta < -0.01 ? 'negative' : 'neutral'}`;
 
-        renderSHAPChart(data.explanation.all_factors, 'wiShapChart');
+        const wiFactors = (data.explanation && data.explanation.all_factors) ||
+                          (data.explanation && data.explanation.top_factors) || [];
+        renderSHAPChart(wiFactors, 'wiShapChart');
     } catch (e) {
         console.error('What-If error:', e);
     }
