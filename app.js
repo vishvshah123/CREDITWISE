@@ -275,11 +275,7 @@ async function runWhatIf() {
     modData.Employment_Stability = parseFloat(document.getElementById('wi-emp').value);
 
     try {
-        const res = await fetch(`${API}/predict`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(modData)
-        });
+        const res = await postJSON(`${API}/predict`, modData);
         if (!res.ok) return;
         const data = await res.json();
         if (!data || !data.explanation) return;
