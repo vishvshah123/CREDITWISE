@@ -58,6 +58,7 @@ document.getElementById('loanForm').addEventListener('submit', async e => {
         } catch (cfErr) { console.warn('Counterfactual skipped:', cfErr); }
 
         baseProb = predData.probability;
+        window.baseMlProb = predData.ml_probability || baseProb;
         renderResults(predData, cfData);
         loadWhatIfSimulator(lastFormData);
 
@@ -284,10 +285,13 @@ async function runWhatIf() {
         const wiBanner = document.getElementById('wi-decision-banner');
         wiBanner.className = `decision-banner wi-banner ${approved ? '' : 'rejected'}`;
         document.getElementById('wi-decision-label').textContent = data.prediction;
-        document.getElementById('wi-prob-text').textContent = `Probability: ${(data.probability * 100).toFixed(1)}%`;
-        document.getElementById('wi-score-num').textContent = `${(data.probability * 100).toFixed(0)}%`;
+        
+        // Use ml_probability for the dynamic visual feedback so sliders don't feel "dead" when clamped
+        const displayProb = data.ml_probability !== undefined ? data.ml_probability : data.probability;
+        document.getElementById('wi-prob-text').textContent = `ML Score: ${(displayProb * 100).toFixed(1)}%`;
+        document.getElementById('wi-score-num').textContent = `${(displayProb * 100).toFixed(0)}%`;
 
-        const delta = data.probability - baseProb;
+        const delta = displayProb - (window.baseMlProb || baseProb);
         const deltaEl = document.getElementById('wi-delta');
         deltaEl.textContent = `${delta >= 0 ? '+' : ''}${(delta * 100).toFixed(1)}%`;
         deltaEl.className = `delta-value ${delta > 0.01 ? 'positive' : delta < -0.01 ? 'negative' : 'neutral'}`;
