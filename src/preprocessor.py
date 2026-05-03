@@ -59,6 +59,9 @@ class Preprocessor:
         if 'Loan_Purpose' in df.columns:
             df['Purpose_Refinancing'] = (df['Loan_Purpose'] == 'Refinancing').astype(int)
             df['Purpose_Home_Improvement'] = (df['Loan_Purpose'] == 'Home Improvement').astype(int)
+            df['Purpose_Personal'] = (df['Loan_Purpose'] == 'Personal').astype(int)
+            df['Purpose_Education'] = (df['Loan_Purpose'] == 'Education').astype(int)
+            df['Purpose_Business'] = (df['Loan_Purpose'] == 'Business').astype(int)
             df.drop('Loan_Purpose', axis=1, inplace=True)
             
         # Drop ID

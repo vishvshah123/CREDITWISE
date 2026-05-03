@@ -29,9 +29,9 @@ class DataLoader:
         
         # Loan Purpose
         df['Loan_Purpose'] = np.random.choice(
-            ['Home Buying', 'Refinancing', 'Home Improvement'], 
+            ['Home Buying', 'Refinancing', 'Home Improvement', 'Personal', 'Education', 'Business'], 
             size=n, 
-            p=[0.6, 0.3, 0.1]
+            p=[0.3, 0.2, 0.1, 0.2, 0.1, 0.1]
         )
         
         # Drop Gender as requested by user

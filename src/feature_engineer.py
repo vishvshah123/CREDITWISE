@@ -35,7 +35,7 @@ class FeatureEngineer:
             df['EMI_to_Income'] = (df['EMI'] / (df['Total_Income'] + 1)).round(3)
             
         # Drop original highly skewed features if log is created
-        cols_to_drop = ['ApplicantIncome', 'CoapplicantIncome', 'LoanAmount', 'Total_Income', 'Existing_Debt']
+        cols_to_drop = ['ApplicantIncome', 'CoapplicantIncome', 'LoanAmount', 'Total_Income', 'Existing_Debt', 'Credit_History']
         df.drop(columns=[c for c in cols_to_drop if c in df.columns], inplace=True)
         
         return df
