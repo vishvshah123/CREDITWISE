@@ -1,11 +1,11 @@
 :root {
-    --bg-color: #f8fafc;
-    --text-color: #0f172a;
+    --bg-color: #f0fdf4;
+    --text-color: #1e293b;
     --text-muted: #64748b;
-    --card-bg: #ffffff;
+    --card-bg: rgba(255, 255, 255, 0.85);
     --border-color: #e2e8f0;
-    --primary: #2563eb;
-    --primary-hover: #1d4ed8;
+    --primary: #10b981;
+    --primary-hover: #059669;
     --success: #10b981;
     --danger: #ef4444;
 }
@@ -18,9 +18,10 @@
 
 body {
     font-family: 'Inter', -apple-system, sans-serif;
-    background-color: var(--bg-color);
+    background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
     color: var(--text-color);
     line-height: 1.5;
+    min-height: 100vh;
 }
 
 .container {
@@ -32,18 +33,20 @@ body {
 header {
     margin-bottom: 2rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    text-align: center;
 }
 
 header h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
+    font-size: 2rem;
+    font-weight: 700;
     letter-spacing: -0.025em;
+    color: #0f172a;
 }
 
 header p {
     color: var(--text-muted);
-    font-size: 0.875rem;
+    font-size: 1rem;
 }
 
 .grid-layout {
@@ -60,16 +63,24 @@ header p {
 
 section {
     background: var(--card-bg);
-    padding: 2rem;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 2.5rem;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    transition: transform 0.2s ease-in-out;
+}
+
+section:hover {
+    transform: translateY(-2px);
 }
 
 h2 {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     margin-bottom: 1.5rem;
     font-weight: 600;
+    color: #0f172a;
 }
 
 h3 {
@@ -82,8 +93,8 @@ h3 {
 
 .form-row {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    gap: 1.5rem;
+    margin-bottom: 1.25rem;
 }
 
 .form-group {
@@ -97,54 +108,62 @@ h3 {
 }
 
 label {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 500;
     margin-bottom: 0.5rem;
-    color: var(--text-muted);
+    color: #475569;
 }
 
 input, select {
-    padding: 0.5rem 0.75rem;
+    padding: 0.75rem;
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: 8px;
     font-size: 0.875rem;
     outline: none;
-    transition: border-color 0.2s;
+    transition: all 0.2s ease;
+    background: #ffffff;
 }
 
 input:focus, select:focus {
     border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
 button {
-    margin-top: 1.5rem;
+    margin-top: 2rem;
     width: 100%;
     background-color: var(--primary);
     color: white;
-    padding: 0.75rem;
+    padding: 1rem;
     border: none;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    font-weight: 500;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
 }
 
 button:hover {
     background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px -1px rgba(16, 185, 129, 0.3);
 }
 
 /* Result Section */
 .card {
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: inset 0 2px 4px 0 rgba(255, 255, 255, 0.5);
 }
 
 #decisionCard h3 {
     margin: 0 0 0.25rem 0;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
+    font-weight: 700;
     text-transform: none;
     letter-spacing: normal;
 }
@@ -158,16 +177,16 @@ button:hover {
 }
 
 .sub-text {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     color: var(--text-muted);
 }
 
 .progress-bar-container {
     width: 100%;
-    height: 8px;
-    background-color: var(--border-color);
-    border-radius: 4px;
-    margin: 0.5rem 0;
+    height: 10px;
+    background-color: #e2e8f0;
+    border-radius: 5px;
+    margin: 0.75rem 0;
     overflow: hidden;
 }
 
@@ -175,24 +194,24 @@ button:hover {
     height: 100%;
     background-color: var(--primary);
     width: 0%;
-    transition: width 0.5s ease-out;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .risk-legend {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
-    margin-top: 0.25rem;
+    margin-top: 0.5rem;
 }
 
 .factor-list {
     list-style: none;
-    margin-top: 1rem;
+    margin-top: 1.25rem;
 }
 
 .factor-list li {
     font-size: 0.875rem;
-    padding: 0.5rem;
-    border-bottom: 1px solid var(--border-color);
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     display: flex;
     justify-content: space-between;
 }
@@ -203,12 +222,12 @@ button:hover {
 
 .impact-pos {
     color: var(--success);
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .impact-neg {
     color: var(--danger);
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .hidden {
@@ -218,18 +237,18 @@ button:hover {
 .initial-state {
     text-align: center;
     color: var(--text-muted);
-    padding: 2rem 0;
+    padding: 3rem 0;
     font-size: 0.875rem;
 }
 
 .spinner {
-    width: 24px;
-    height: 24px;
-    border: 3px solid var(--border-color);
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(16, 185, 129, 0.2);
     border-top: 3px solid var(--primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    margin: 0 auto 1rem auto;
+    margin: 0 auto 1.5rem auto;
 }
 
 @keyframes spin {
@@ -239,5 +258,5 @@ button:hover {
 
 #loading {
     text-align: center;
-    padding: 2rem 0;
+    padding: 3rem 0;
 }

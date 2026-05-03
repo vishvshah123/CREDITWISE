@@ -20,10 +20,11 @@
                 <form id="loanForm">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="Gender">Gender</label>
-                            <select id="Gender" required>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
+                            <label for="Loan_Purpose">Loan Purpose</label>
+                            <select id="Loan_Purpose" required>
+                                <option value="Home Buying">Home Buying</option>
+                                <option value="Refinancing">Refinancing</option>
+                                <option value="Home Improvement">Home Improvement</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -96,12 +97,29 @@
                         </div>
                     </div>
 
-                    <div class="form-group full-width">
-                        <label for="Credit_History">Credit History</label>
-                        <select id="Credit_History" required>
-                            <option value="1.0">Good (Meets guidelines)</option>
-                            <option value="0.0">Bad (Defaults/Delinquencies)</option>
-                        </select>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="Existing_Debt">Existing Debt ($)</label>
+                            <input type="number" id="Existing_Debt" value="2500" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="Credit_Utilization">Credit Utilization (%)</label>
+                            <input type="number" id="Credit_Utilization" value="30" min="0" max="100" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="Employment_Stability">Employment Stability (Years)</label>
+                            <input type="number" id="Employment_Stability" value="5" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="Credit_History">Credit History</label>
+                            <select id="Credit_History" required>
+                                <option value="1.0">Good (Meets guidelines)</option>
+                                <option value="0.0">Bad (Defaults/Delinquencies)</option>
+                            </select>
+                        </div>
                     </div>
 
                     <button type="submit" id="submitBtn">Run Assessment</button>
