@@ -7,6 +7,7 @@ import numpy as np
 import joblib
 import os
 import sys
+import traceback
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
@@ -14,6 +15,19 @@ sys.path.insert(0, BASE_DIR)
 from src.config import MODELS_DIR
 from src.explainer import Explainer
 from src.business_rules import apply_rules
+
+def robust_float(v):
+    try:
+        return float(v)
+    except (ValueError, TypeError):
+        if hasattr(v, 'item'):
+            return float(v.item())
+        if isinstance(v, str):
+            clean = re.sub(r'[\[\]\s]', '', v)
+            return float(clean)
+        if isinstance(v, (list, tuple, np.ndarray)):
+            return float(v[0])
+        raise
 
 app = FastAPI(title="CreditWise Loan Approval API", version="2.0")
 
@@ -105,15 +119,26 @@ def predict_loan(app_data: LoanApplication):
         raise HTTPException(status_code=500, detail="Model not loaded.")
     try:
         X_scaled = preprocess_input(app_data)
-        ml_prob = float(model.predict_proba(X_scaled)[0, 1])
+        
+        raw_prob = model.predict_proba(X_scaled)[0, 1]
+        ml_prob = robust_float(raw_prob)
 
         # Apply hard business rules on top of ML score
         rules_result = apply_rules(app_data.model_dump(), ml_prob)
-        final_prob = rules_result['adjusted_probability']
+        final_prob = robust_float(rules_result['adjusted_probability'])
         approved = bool(final_prob >= opt_threshold)
 
         explainer = Explainer(model, X_scaled, config['feature_cols'])
-        contributions = explainer.get_local_explanation(X_scaled)
+        raw_contributions = explainer.get_local_explanation(X_scaled)
+        
+        # Ensure pure python floats everywhere
+        contributions = []
+        for c in raw_contributions:
+            contributions.append({
+                'feature': c['feature'],
+                'value': robust_float(c['value']),
+                'impact': robust_float(c['impact'])
+            })
 
         return {
             "prediction": "Approved" if approved else "Rejected",
@@ -133,7 +158,8 @@ def predict_loan(app_data: LoanApplication):
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        tb = traceback.format_exc()
+        raise HTTPException(status_code=400, detail=f"{str(e)}\n\nTraceback:\n{tb}")
 
 @app.post("/counterfactual")
 def get_counterfactual(app_data: LoanApplication):
@@ -142,12 +168,21 @@ def get_counterfactual(app_data: LoanApplication):
         raise HTTPException(status_code=500, detail="Model not loaded.")
     try:
         X_scaled = preprocess_input(app_data)
-        prob = model.predict_proba(X_scaled)[0, 1]
+        raw_prob = model.predict_proba(X_scaled)[0, 1]
+        prob = robust_float(raw_prob)
         approved = bool(prob >= opt_threshold)
 
         # Get all SHAP contributions
         explainer = Explainer(model, X_scaled, config['feature_cols'])
-        contributions = explainer.get_local_explanation(X_scaled)
+        raw_contributions = explainer.get_local_explanation(X_scaled)
+        
+        contributions = []
+        for c in raw_contributions:
+            contributions.append({
+                'feature': c['feature'],
+                'value': robust_float(c['value']),
+                'impact': robust_float(c['impact'])
+            })
 
         suggestions = []
         raw = app_data.model_dump()
@@ -168,7 +203,8 @@ def get_counterfactual(app_data: LoanApplication):
             "recommendations": suggestions
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        tb = traceback.format_exc()
+        raise HTTPException(status_code=400, detail=f"{str(e)}\n\nTraceback:\n{tb}")
 
 def _generate_advice(feature: str, raw: dict) -> dict | None:
     """Map a feature name to a human-readable improvement suggestion."""
