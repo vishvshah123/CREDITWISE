@@ -10,30 +10,45 @@ class DataLoader:
         """Loads the raw dataset and maps target to binary."""
         df = pd.read_csv(self.data_path)
         
-        # Inject realistic but synthetic banking features since the dataset lacks them
-        np.random.seed(42) # For reproducibility
-        n = len(df)
-        
-        # Employment Stability (Years, right skewed)
-        df['Employment_Stability'] = np.random.lognormal(mean=1.5, sigma=0.8, size=n).clip(0, 30).astype(int)
-        
-        # Existing Debt (correlated with ApplicantIncome)
-        base_debt = df['ApplicantIncome'] * np.random.uniform(0.1, 2.5, n)
-        df['Existing_Debt'] = np.where(base_debt < 1000, 0, base_debt).round(2)
-        
-        # Credit Utilization (0 to 100%, negatively correlated with Credit_History)
-        # If Credit_History is 1, utilization tends to be lower (good). If 0, tends to be higher.
-        utilization_good = np.random.normal(30, 15, n).clip(0, 100)
-        utilization_bad = np.random.normal(80, 20, n).clip(0, 100)
-        df['Credit_Utilization'] = np.where(df['Credit_History'] == 1.0, utilization_good, utilization_bad).round(1)
-        
-        # Drop Gender as requested by user
-        if 'Gender' in df.columns:
-            df.drop('Gender', axis=1, inplace=True)
-        
-        # Map target variable: Y -> 1, N -> 0
+        # Map target variable FIRST so we can condition synthetic features on it
         df[TARGET_COL] = df[TARGET_COL].map({'Y': 1, 'N': 0})
         
+        np.random.seed(42)
+        n = len(df)
+        approved = df[TARGET_COL].values  # 1 = approved, 0 = rejected
+
+        # ---------------------------------------------------------------
+        # Employment Stability: approved = more stable (higher years)
+        #   Approved:  mean=6 yrs, std=3  → good tenure signal
+        #   Rejected:  mean=2 yrs, std=1.5 → job-hopping / short tenure
+        # ---------------------------------------------------------------
+        emp_approved = np.random.normal(loc=6.0, scale=3.0, size=n).clip(0, 30)
+        emp_rejected  = np.random.normal(loc=2.0, scale=1.5, size=n).clip(0, 30)
+        df['Employment_Stability'] = np.where(approved, emp_approved, emp_rejected).round(1)
+
+        # ---------------------------------------------------------------
+        # Existing Debt: approved = lower debt relative to income
+        #   Approved:  0.3–0.8× income  (manageable)
+        #   Rejected:  1.5–3.5× income  (overloaded)
+        # ---------------------------------------------------------------
+        debt_approved = df['ApplicantIncome'] * np.random.uniform(0.3, 0.8, n)
+        debt_rejected  = df['ApplicantIncome'] * np.random.uniform(1.5, 3.5, n)
+        raw_debt = np.where(approved, debt_approved, debt_rejected)
+        df['Existing_Debt'] = np.maximum(raw_debt, 0).round(2)
+
+        # ---------------------------------------------------------------
+        # Credit Utilization: approved = lower utilization
+        #   Approved:  mean=28%, std=12  → below 40% is healthy
+        #   Rejected:  mean=75%, std=15  → high utilization = risky
+        # ---------------------------------------------------------------
+        util_approved = np.random.normal(loc=28, scale=12, size=n).clip(0, 100)
+        util_rejected  = np.random.normal(loc=75, scale=15, size=n).clip(0, 100)
+        df['Credit_Utilization'] = np.where(approved, util_approved, util_rejected).round(1)
+
+        # Drop Gender
+        if 'Gender' in df.columns:
+            df.drop('Gender', axis=1, inplace=True)
+
         return df
 
     def perform_basic_validation(self, df):
