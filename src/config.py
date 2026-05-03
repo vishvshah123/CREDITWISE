@@ -13,4 +13,4 @@ TARGET_COL = 'Loan_Status'
 ID_COL = 'Loan_ID'
 
 NUMERICAL_COLS = ['ApplicantIncome', 'CoapplicantIncome', 'LoanAmount', 'Loan_Amount_Term', 'Credit_History', 'Existing_Debt', 'Credit_Utilization', 'Employment_Stability']
-CATEGORICAL_COLS = ['Married', 'Dependents', 'Education', 'Self_Employed', 'Property_Area', 'Loan_Purpose']
+CATEGORICAL_COLS = ['Married', 'Dependents', 'Education', 'Self_Employed', 'Property_Area']

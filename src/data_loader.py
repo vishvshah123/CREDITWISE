@@ -27,13 +27,6 @@ class DataLoader:
         utilization_bad = np.random.normal(80, 20, n).clip(0, 100)
         df['Credit_Utilization'] = np.where(df['Credit_History'] == 1.0, utilization_good, utilization_bad).round(1)
         
-        # Loan Purpose
-        df['Loan_Purpose'] = np.random.choice(
-            ['Home Buying', 'Refinancing', 'Home Improvement', 'Personal', 'Education', 'Business'], 
-            size=n, 
-            p=[0.3, 0.2, 0.1, 0.2, 0.1, 0.1]
-        )
-        
         # Drop Gender as requested by user
         if 'Gender' in df.columns:
             df.drop('Gender', axis=1, inplace=True)

@@ -49,7 +49,6 @@ class LoanApplication(BaseModel):
     Existing_Debt: float
     Credit_Utilization: float
     Employment_Stability: float
-    Loan_Purpose: str
 
 @app.get("/")
 def read_root():
