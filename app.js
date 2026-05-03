@@ -14,7 +14,6 @@ document.getElementById('loanForm').addEventListener('submit', async (e) => {
 
     // Gather Form Data
     const formData = {
-        Loan_Purpose: document.getElementById('Loan_Purpose').value,
         Married: document.getElementById('Married').value,
         Dependents: document.getElementById('Dependents').value,
         Education: document.getElementById('Education').value,
