@@ -3,156 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CreditWise Loan Approval System</title>
+    <title>CreditWise — Loan Risk Intelligence</title>
+    <meta name="description" content="AI-powered loan risk assessment with SHAP explainability and counterfactual recommendations.">
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>CreditWise</h1>
-            <p>Risk Assessment & Decision Intelligence</p>
-        </header>
-
-        <main class="grid-layout">
-            <section class="form-section">
-                <h2>Applicant Details</h2>
-                <form id="loanForm">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="Married">Married</label>
-                            <select id="Married" required>
-                                <option value="Yes">Yes</option>
-                                <option value="No">No</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="Dependents">Dependents</label>
-                            <select id="Dependents" required>
-                                <option value="0">0</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3+">3+</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="Education">Education</label>
-                            <select id="Education" required>
-                                <option value="Graduate">Graduate</option>
-                                <option value="Not Graduate">Not Graduate</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="Self_Employed">Self Employed</label>
-                            <select id="Self_Employed" required>
-                                <option value="No">No</option>
-                                <option value="Yes">Yes</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="Property_Area">Property Area</label>
-                            <select id="Property_Area" required>
-                                <option value="Urban">Urban</option>
-                                <option value="Semiurban">Semiurban</option>
-                                <option value="Rural">Rural</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <h3>Financial Profile</h3>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="ApplicantIncome">Applicant Income ($/mo)</label>
-                            <input type="number" id="ApplicantIncome" value="5000" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="CoapplicantIncome">Co-Applicant Income ($/mo)</label>
-                            <input type="number" id="CoapplicantIncome" value="0" required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="LoanAmount">Loan Amount (in Thousands)</label>
-                            <input type="number" id="LoanAmount" value="150" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="Loan_Amount_Term">Loan Term (Months)</label>
-                            <input type="number" id="Loan_Amount_Term" value="360" required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="Existing_Debt">Existing Debt ($)</label>
-                            <input type="number" id="Existing_Debt" value="2500" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="Credit_Utilization">Credit Utilization (%)</label>
-                            <input type="number" id="Credit_Utilization" value="30" min="0" max="100" required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="Employment_Stability">Employment Stability (Years)</label>
-                            <input type="number" id="Employment_Stability" value="5" min="0" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="Credit_History">Credit History</label>
-                            <select id="Credit_History" required>
-                                <option value="1.0">Good (Meets guidelines)</option>
-                                <option value="0.0">Bad (Defaults/Delinquencies)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <button type="submit" id="submitBtn">Run Assessment</button>
-                </form>
-            </section>
-
-            <section class="result-section">
-                <h2>Assessment Results</h2>
-                
-                <div id="loading" class="hidden">
-                    <div class="spinner"></div>
-                    <p>Processing ML Model Inference...</p>
+    <div class="app-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">CW</div>
+                <div>
+                    <div class="brand-name">CreditWise</div>
+                    <div class="brand-sub">Risk Intelligence</div>
                 </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-tab="assess">Assessment</a>
+                <a href="#" class="nav-item" data-tab="whatif">What-If Simulator</a>
+            </nav>
+            <div class="sidebar-footer">ML-Powered · SHAP Explainable</div>
+        </aside>
 
-                <div id="resultsContent" class="hidden">
-                    <div id="decisionCard" class="card">
-                        <h3 id="predictionText">Decision Pending</h3>
-                        <p id="probabilityText" class="sub-text">Probability: --</p>
-                    </div>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- HEADER -->
+            <header class="top-header">
+                <div>
+                    <h1 id="page-title">Loan Risk Assessment</h1>
+                    <p id="page-subtitle">Fill in the applicant profile to generate a full credit risk analysis.</p>
+                </div>
+                <div id="live-score-badge" class="hidden">
+                    <span id="live-score-label">Score</span>
+                    <span id="live-score-value">--</span>
+                </div>
+            </header>
 
-                    <div class="card risk-card">
-                        <h4>Credit Risk Score</h4>
-                        <div class="progress-bar-container">
-                            <div id="riskBar" class="progress-bar"></div>
+            <!-- TAB: ASSESSMENT -->
+            <div id="tab-assess" class="tab-content active">
+                <div class="two-col-layout">
+                    <!-- LEFT: Form -->
+                    <section class="glass-card">
+                        <h2 class="section-title">Applicant Profile</h2>
+                        <form id="loanForm">
+                            <div class="field-group-label">Personal Information</div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="Married">Marital Status</label>
+                                    <select id="Married" required>
+                                        <option value="Yes">Married</option>
+                                        <option value="No">Single</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="Dependents">Dependents</label>
+                                    <select id="Dependents" required>
+                                        <option value="0">None</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3+">3 or more</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="Education">Education</label>
+                                    <select id="Education" required>
+                                        <option value="Graduate">Graduate</option>
+                                        <option value="Not Graduate">Not Graduate</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="Self_Employed">Employment Type</label>
+                                    <select id="Self_Employed" required>
+                                        <option value="No">Salaried</option>
+                                        <option value="Yes">Self-Employed</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="Property_Area">Property Area</label>
+                                    <select id="Property_Area" required>
+                                        <option value="Urban">Urban</option>
+                                        <option value="Semiurban">Semiurban</option>
+                                        <option value="Rural">Rural</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="Employment_Stability">Employment Stability (yrs)</label>
+                                    <input type="number" id="Employment_Stability" value="5" min="0" max="40" required>
+                                </div>
+                            </div>
+
+                            <div class="field-group-label">Financial Profile</div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="ApplicantIncome">Applicant Income ($/mo)</label>
+                                    <input type="number" id="ApplicantIncome" value="5000" min="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="CoapplicantIncome">Co-Applicant Income ($/mo)</label>
+                                    <input type="number" id="CoapplicantIncome" value="0" min="0" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="LoanAmount">Loan Amount ($K)</label>
+                                    <input type="number" id="LoanAmount" value="150" min="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="Loan_Amount_Term">Loan Term (months)</label>
+                                    <input type="number" id="Loan_Amount_Term" value="360" min="12" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="Existing_Debt">Existing Debt ($)</label>
+                                    <input type="number" id="Existing_Debt" value="2500" min="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="Credit_Utilization">Credit Utilization (%)</label>
+                                    <input type="number" id="Credit_Utilization" value="30" min="0" max="100" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group full-width">
+                                    <label for="Credit_History">Credit History</label>
+                                    <select id="Credit_History" required>
+                                        <option value="1.0">Good — Meets all guidelines</option>
+                                        <option value="0.0">Poor — Defaults / Delinquencies</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button type="submit" id="submitBtn" class="btn-primary">
+                                <span id="btnText">Run Assessment</span>
+                                <div id="btnSpinner" class="btn-spinner hidden"></div>
+                            </button>
+                        </form>
+                    </section>
+
+                    <!-- RIGHT: Results -->
+                    <section class="results-panel">
+                        <div id="initialState" class="empty-state">
+                            <div class="empty-icon">⬡</div>
+                            <p>Submit an application to see the risk analysis, SHAP waterfall chart, and improvement recommendations.</p>
                         </div>
-                        <p id="riskScoreText">0.00 / 1.00</p>
-                        <p class="risk-legend">Lower score indicates better creditworthiness</p>
-                    </div>
 
-                    <div class="card explainer-card">
-                        <h4>Model Explanation (SHAP)</h4>
-                        <p class="sub-text">Top factors influencing this decision:</p>
-                        <ul id="shapList" class="factor-list">
-                        </ul>
-                    </div>
+                        <div id="resultsContent" class="hidden">
+                            <!-- Decision Banner -->
+                            <div id="decisionBanner" class="decision-banner">
+                                <div class="decision-left">
+                                    <div id="decisionIcon" class="decision-icon">✓</div>
+                                    <div>
+                                        <div id="decisionLabel" class="decision-label">Approved</div>
+                                        <div id="decisionSub" class="decision-sub">Approval Probability: --</div>
+                                    </div>
+                                </div>
+                                <div class="decision-right">
+                                    <div class="score-ring-wrapper">
+                                        <svg class="score-ring" viewBox="0 0 64 64">
+                                            <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="6"/>
+                                            <circle id="scoreArc" cx="32" cy="32" r="26" fill="none" stroke="white" stroke-width="6"
+                                                stroke-dasharray="163.4" stroke-dashoffset="163.4"
+                                                stroke-linecap="round" transform="rotate(-90 32 32)"/>
+                                        </svg>
+                                        <div id="scorePercent" class="score-percent">0%</div>
+                                    </div>
+                                    <div class="score-ring-label">Approval Score</div>
+                                </div>
+                            </div>
+
+                            <!-- SHAP Waterfall -->
+                            <div class="glass-card result-card">
+                                <h3 class="card-title">SHAP Feature Impact</h3>
+                                <p class="card-sub">Each bar shows how much a feature pushed the score up (green) or down (red) from the baseline.</p>
+                                <div class="chart-container">
+                                    <canvas id="shapChart"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Counterfactual Recommendations -->
+                            <div id="cfCard" class="glass-card result-card hidden">
+                                <h3 class="card-title">How to Improve Your Profile</h3>
+                                <p class="card-sub">The model identified these specific actions to increase your approval probability:</p>
+                                <div id="cfList" class="cf-list"></div>
+                            </div>
+
+                            <!-- Stats Row -->
+                            <div class="stats-row">
+                                <div class="stat-box">
+                                    <div class="stat-label">Risk Score</div>
+                                    <div id="statRisk" class="stat-value">--</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-label">Decision Threshold</div>
+                                    <div id="statThreshold" class="stat-value">--</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-label">Gap to Approval</div>
+                                    <div id="statGap" class="stat-value">--</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
-                
-                <div id="initialState" class="initial-state">
-                    <p>Fill out the application form to generate a risk assessment.</p>
+            </div>
+
+            <!-- TAB: WHAT-IF SIMULATOR -->
+            <div id="tab-whatif" class="tab-content hidden">
+                <div class="whatif-layout">
+                    <section class="glass-card">
+                        <h2 class="section-title">What-If Simulator</h2>
+                        <p class="section-sub">Adjust sliders to see in real-time how each financial parameter affects the approval score. First run an assessment from the main tab to load base values.</p>
+                        <div id="whatif-not-ready" class="empty-state small">
+                            <div class="empty-icon">⬡</div>
+                            <p>Run an assessment first to load base values into the simulator.</p>
+                        </div>
+                        <div id="whatif-controls" class="hidden">
+                            <div class="slider-group">
+                                <div class="slider-row">
+                                    <label>Applicant Income ($/mo) <span id="wi-income-val" class="slider-val"></span></label>
+                                    <input type="range" id="wi-income" min="1000" max="20000" step="500" class="wi-slider">
+                                </div>
+                                <div class="slider-row">
+                                    <label>Co-Applicant Income ($/mo) <span id="wi-coincome-val" class="slider-val"></span></label>
+                                    <input type="range" id="wi-coincome" min="0" max="10000" step="500" class="wi-slider">
+                                </div>
+                                <div class="slider-row">
+                                    <label>Loan Amount ($K) <span id="wi-loan-val" class="slider-val"></span></label>
+                                    <input type="range" id="wi-loan" min="10" max="500" step="10" class="wi-slider">
+                                </div>
+                                <div class="slider-row">
+                                    <label>Existing Debt ($) <span id="wi-debt-val" class="slider-val"></span></label>
+                                    <input type="range" id="wi-debt" min="0" max="30000" step="500" class="wi-slider">
+                                </div>
+                                <div class="slider-row">
+                                    <label>Credit Utilization (%) <span id="wi-util-val" class="slider-val"></span></label>
+                                    <input type="range" id="wi-util" min="0" max="100" step="5" class="wi-slider">
+                                </div>
+                                <div class="slider-row">
+                                    <label>Employment Stability (yrs) <span id="wi-emp-val" class="slider-val"></span></label>
+                                    <input type="range" id="wi-emp" min="0" max="20" step="1" class="wi-slider">
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="glass-card">
+                        <h2 class="section-title">Live Score</h2>
+                        <div id="whatif-not-ready-2" class="empty-state small">
+                            <p>Waiting for base assessment...</p>
+                        </div>
+                        <div id="whatif-score-panel" class="hidden">
+                            <div id="wi-decision-banner" class="decision-banner wi-banner">
+                                <div>
+                                    <div id="wi-decision-label" class="decision-label">--</div>
+                                    <div id="wi-prob-text" class="decision-sub">--</div>
+                                </div>
+                                <div id="wi-score-num" class="wi-big-score">--</div>
+                            </div>
+                            <div class="delta-display">
+                                <div class="delta-label">Score Change vs. Original</div>
+                                <div id="wi-delta" class="delta-value neutral">± 0%</div>
+                            </div>
+                            <div class="glass-card result-card" style="margin-top: 1.5rem;">
+                                <h3 class="card-title">Live SHAP Impact</h3>
+                                <div class="chart-container">
+                                    <canvas id="wiShapChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
-            </section>
+            </div>
         </main>
     </div>
     <script src="app.js"></script>
