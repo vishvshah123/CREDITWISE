@@ -12,6 +12,7 @@ sys.path.insert(0, BASE_DIR)
 
 from src.config import MODELS_DIR
 from src.explainer import Explainer
+from src.business_rules import apply_rules
 
 app = FastAPI(title="CreditWise Loan Approval API", version="2.0")
 
@@ -50,7 +51,10 @@ class LoanApplication(BaseModel):
 
 def preprocess_input(app_data: LoanApplication):
     """Common preprocessing pipeline. Returns scaled DataFrame."""
-    df = pd.DataFrame([app_data.model_dump()])
+    df = pd.DataFrame([{
+        k: float(v) if isinstance(v, (np.floating, np.integer)) else v
+        for k, v in app_data.model_dump().items()
+    }])
     df = preprocessor.handle_missing_values(df)
     df = preprocessor.encode_categorical(df)
     df = engineer.engineer_features(df)
@@ -74,21 +78,31 @@ def predict_loan(app_data: LoanApplication):
         raise HTTPException(status_code=500, detail="Model not loaded.")
     try:
         X_scaled = preprocess_input(app_data)
-        prob = model.predict_proba(X_scaled)[0, 1]
-        approved = bool(prob >= opt_threshold)
+        ml_prob = float(model.predict_proba(X_scaled)[0, 1])
+
+        # Apply hard business rules on top of ML score
+        rules_result = apply_rules(app_data.model_dump(), ml_prob)
+        final_prob = rules_result['adjusted_probability']
+        approved = bool(final_prob >= opt_threshold)
 
         explainer = Explainer(model, X_scaled, config['feature_cols'])
         contributions = explainer.get_local_explanation(X_scaled)
 
-        # Return ALL factors for waterfall chart, not just top 3
         return {
             "prediction": "Approved" if approved else "Rejected",
-            "probability": round(float(prob), 4),
-            "risk_score": round(float(1 - prob), 4),
+            "probability": round(final_prob, 4),
+            "ml_probability": round(ml_prob, 4),
+            "risk_score": round(1 - final_prob, 4),
             "threshold_used": float(opt_threshold),
+            "rules_triggered": rules_result['rules_triggered'],
+            "underwriting": {
+                "dti": rules_result['dti'],
+                "income_coverage": rules_result['income_coverage'],
+                "emi": rules_result['emi'],
+            },
             "explanation": {
                 "top_factors": contributions[:5],
-                "all_factors": contributions   # Full SHAP for waterfall
+                "all_factors": contributions
             }
         }
     except Exception as e:

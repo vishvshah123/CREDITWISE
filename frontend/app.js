@@ -116,7 +116,7 @@ function renderResults(data, cfData) {
     banner.className = `decision-banner ${approved ? '' : 'rejected'}`;
     document.getElementById('decisionIcon').textContent = approved ? '✓' : '✗';
     document.getElementById('decisionLabel').textContent = data.prediction;
-    document.getElementById('decisionSub').textContent = `Approval Probability: ${(data.probability * 100).toFixed(1)}%`;
+    document.getElementById('decisionSub').textContent = `ML Score: ${(data.ml_probability * 100).toFixed(1)}%  |  Final: ${(data.probability * 100).toFixed(1)}%`;
 
     // Score Ring animation
     const pct = data.probability;
@@ -127,13 +127,32 @@ function renderResults(data, cfData) {
     arc.style.strokeDashoffset = offset;
     document.getElementById('scorePercent').textContent = `${(pct * 100).toFixed(0)}%`;
 
-    // Stats
+    // Stats - now shows underwriting ratios too
     document.getElementById('statRisk').textContent = data.risk_score.toFixed(3);
-    document.getElementById('statThreshold').textContent = data.threshold_used.toFixed(3);
-    const gap = data.threshold_used - data.probability;
-    const gapEl = document.getElementById('statGap');
-    gapEl.textContent = gap > 0 ? `+${(gap * 100).toFixed(1)}%` : 'Within Range';
-    gapEl.style.color = gap > 0 ? 'var(--danger)' : 'var(--primary)';
+    const u = data.underwriting || {};
+    document.getElementById('statThreshold').textContent = u.dti ? `DTI: ${(u.dti * 100).toFixed(1)}%` : data.threshold_used.toFixed(3);
+    document.getElementById('statGap').textContent = u.income_coverage ? `Coverage: ${u.income_coverage.toFixed(2)}×` : '--';
+    document.getElementById('statGap').style.color = u.income_coverage > 1.5 ? 'var(--primary)' : 'var(--danger)';
+
+    // Business rules triggered
+    const rulesTriggered = data.rules_triggered || [];
+    let rulesCard = document.getElementById('rulesCard');
+    if (!rulesCard) {
+        rulesCard = document.createElement('div');
+        rulesCard.id = 'rulesCard';
+        rulesCard.className = 'glass-card result-card';
+        document.getElementById('resultsContent').insertBefore(rulesCard, document.getElementById('cfCard'));
+    }
+    if (rulesTriggered.length > 0) {
+        rulesCard.innerHTML = `<h3 class="card-title" style="color:var(--danger)">Underwriting Rules Triggered</h3>
+            <p class="card-sub">These hard banking rules capped the ML score:</p>
+            ${rulesTriggered.map(r => `<div class="cf-item" style="border-left-color:var(--danger)"><div class="cf-detail">${r}</div></div>`).join('')}`;
+        rulesCard.classList.remove('hidden');
+    } else if (rulesCard) {
+        rulesCard.innerHTML = `<h3 class="card-title" style="color:var(--primary)">Underwriting Rules Passed</h3>
+            <p class="card-sub" style="color:var(--primary)">DTI: ${((u.dti||0)*100).toFixed(1)}% ✓  |  Income Coverage: ${(u.income_coverage||0).toFixed(2)}× ✓  |  Monthly EMI: $${(u.emi||0).toFixed(0)}</p>`;
+        rulesCard.classList.remove('hidden');
+    }
 
     // SHAP Waterfall Chart — fall back to top_factors if backend is old version
     const factors = (data.explanation && data.explanation.all_factors) ||
