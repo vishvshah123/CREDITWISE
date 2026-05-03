@@ -41,11 +41,7 @@ document.getElementById('loanForm').addEventListener('submit', async e => {
     lastFormData = collectFormData();
 
     try {
-        const predRes = await fetch(`${API}/predict`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(lastFormData)
-        });
+        const predRes = await postJSON(`${API}/predict`, lastFormData);
 
         if (!predRes.ok) {
             const err = await predRes.json().catch(() => ({}));
@@ -57,11 +53,7 @@ document.getElementById('loanForm').addEventListener('submit', async e => {
         // Fetch counterfactual separately so its failure doesn't block the main result
         let cfData = null;
         try {
-            const cfRes = await fetch(`${API}/counterfactual`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(lastFormData)
-            });
+            const cfRes = await postJSON(`${API}/counterfactual`, lastFormData);
             if (cfRes.ok) cfData = await cfRes.json();
         } catch (cfErr) { console.warn('Counterfactual skipped:', cfErr); }
 
@@ -312,6 +304,29 @@ async function runWhatIf() {
     }
 }
 
+function sanitizePayload(data) {
+    // Guard against numpy-style strings or NaN leaking into the payload
+    const out = {};
+    for (const [k, v] of Object.entries(data)) {
+        if (typeof v === 'number') {
+            out[k] = isNaN(v) ? 0 : v;
+        } else if (typeof v === 'string' && v.startsWith('[')) {
+            // numpy array string like '[0.686]' — strip brackets and parse
+            out[k] = parseFloat(v.replace(/[\[\]\s]/g, '')) || 0;
+        } else {
+            out[k] = v;
+        }
+    }
+    return out;
+}
+
+async function postJSON(url, data) {
+    return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sanitizePayload(data))
+    });
+}
 function formatFeature(name) {
     const map = {
         'Credit_Utilization': 'Credit Utilization',

@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+import re
 import pandas as pd
 import numpy as np
 import joblib
@@ -49,6 +50,26 @@ class LoanApplication(BaseModel):
     Credit_Utilization: float
     Employment_Stability: float
 
+    @field_validator(
+        'ApplicantIncome', 'CoapplicantIncome', 'LoanAmount',
+        'Loan_Amount_Term', 'Credit_History', 'Existing_Debt',
+        'Credit_Utilization', 'Employment_Stability',
+        mode='before'
+    )
+    @classmethod
+    def coerce_to_float(cls, v):
+        """Handle numpy array strings like '[6.86E-1]' and scientific notation."""
+        if isinstance(v, (int, float)):
+            return float(v)
+        if isinstance(v, str):
+            # Strip numpy-style brackets: '[0.686]' -> '0.686'
+            clean = re.sub(r'[\[\]\s]', '', v)
+            try:
+                return float(clean)
+            except ValueError:
+                raise ValueError(f"Cannot convert '{v}' to float")
+        return v
+
 def preprocess_input(app_data: LoanApplication):
     """Common preprocessing pipeline. Returns scaled DataFrame."""
     df = pd.DataFrame([{
@@ -71,6 +92,12 @@ def preprocess_input(app_data: LoanApplication):
 @app.get("/")
 def read_root():
     return {"message": "CreditWise API v2.0 — POST /predict or /counterfactual"}
+
+@app.post("/debug-body")
+async def debug_body(request: Request):
+    """Debug endpoint: returns raw request body to diagnose field type issues."""
+    body = await request.json()
+    return {k: {"value": v, "type": type(v).__name__} for k, v in body.items()}
 
 @app.post("/predict")
 def predict_loan(app_data: LoanApplication):
