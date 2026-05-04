@@ -15,12 +15,12 @@ def apply_rules(row: dict, prob: float) -> dict:
     Applies hard banking rules on top of the ML probability.
     Returns adjusted probability and list of triggered rules.
     """
-    total_income = row['ApplicantIncome'] + row['CoapplicantIncome']
-    monthly_income = total_income / 12
+    # Inputs are already in $/mo
+    total_monthly_income = row['ApplicantIncome'] + row['CoapplicantIncome']
     emi = (row['LoanAmount'] * 1000) / row['Loan_Amount_Term']
     monthly_debt = row['Existing_Debt'] * 0.03
-    dti = (emi + monthly_debt) / (monthly_income + 1)
-    income_coverage = monthly_income / (emi + 1)
+    dti = (emi + monthly_debt) / (total_monthly_income + 1)
+    income_coverage = total_monthly_income / (emi + 1)
 
     triggered = []
     adjusted_prob = prob
