@@ -405,3 +405,74 @@ select option { background: var(--bg-3); }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-subtle); }
+
+/* ---- RESPONSIVE MEDIA QUERIES ---- */
+@media (max-width: 900px) {
+    body {
+        height: auto;
+        overflow-y: auto;
+    }
+    .app-wrapper {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+    }
+    .sidebar {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+    .sidebar-brand {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+    .sidebar-nav {
+        flex-direction: row;
+        gap: 0.5rem;
+        flex: initial;
+    }
+    .sidebar-footer {
+        display: none;
+    }
+    .two-col-layout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .whatif-layout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .top-header {
+        padding: 1.25rem 1.5rem 1rem;
+    }
+    .tab-content {
+        padding: 1rem 1.5rem 2rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+    .decision-banner {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    .decision-right {
+        align-self: center;
+    }
+    .sidebar {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+}
