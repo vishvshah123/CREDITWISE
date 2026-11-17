@@ -1,4 +1,6 @@
-const API = 'https://creditwise-api.onrender.com';
+const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://127.0.0.1:8000'
+    : (window.CREDITWISE_API_URL || 'https://creditwise-api.onrender.com');
 
 // ---- State ----
 let lastFormData = null;
@@ -37,6 +39,9 @@ document.getElementById('loanForm').addEventListener('submit', async e => {
     btn.disabled = true;
     btnText.textContent = 'Analyzing...';
     btnSpinner.classList.remove('hidden');
+    const wakeTimer = setTimeout(() => {
+        if (btn.disabled) btnText.textContent = 'Waking server (free tier)...';
+    }, 3500);
 
     lastFormData = collectFormData();
 
@@ -71,6 +76,7 @@ document.getElementById('loanForm').addEventListener('submit', async e => {
         alert(`Connection failed: ${err.message}\n\nThe Render server may be waking up. Please wait 30 seconds and try again.`);
         console.error(err);
     } finally {
+        if (typeof wakeTimer !== 'undefined') clearTimeout(wakeTimer);
         btn.disabled = false;
         btnText.textContent = 'Run Assessment';
         btnSpinner.classList.add('hidden');
@@ -120,12 +126,16 @@ function renderResults(data, cfData) {
     arc.style.strokeDashoffset = offset;
     document.getElementById('scorePercent').textContent = `${(pct * 100).toFixed(0)}%`;
 
-    // Stats - now shows underwriting ratios too
+    // Stats - dynamically update labels and values
     document.getElementById('statRisk').textContent = data.risk_score.toFixed(3);
     const u = data.underwriting || {};
-    document.getElementById('statThreshold').textContent = u.dti ? `DTI: ${(u.dti * 100).toFixed(1)}%` : data.threshold_used.toFixed(3);
-    document.getElementById('statGap').textContent = u.income_coverage ? `Coverage: ${u.income_coverage.toFixed(2)}×` : '--';
-    document.getElementById('statGap').style.color = u.income_coverage > 1.5 ? 'var(--primary)' : 'var(--danger)';
+    const dtiLabel = document.getElementById('statLabelThreshold');
+    if (dtiLabel) dtiLabel.textContent = u.dti !== undefined ? 'Debt-to-Income (DTI)' : 'Decision Threshold';
+    document.getElementById('statThreshold').textContent = u.dti !== undefined ? `${(u.dti * 100).toFixed(1)}%` : data.threshold_used.toFixed(3);
+    const covLabel = document.getElementById('statLabelGap');
+    if (covLabel) covLabel.textContent = u.income_coverage !== undefined ? 'Income Coverage' : 'Gap to Approval';
+    document.getElementById('statGap').textContent = u.income_coverage !== undefined ? `${u.income_coverage.toFixed(2)}×` : '--';
+    document.getElementById('statGap').style.color = (u.income_coverage || 0) > 1.5 ? 'var(--primary)' : 'var(--danger)';
 
     // Business rules triggered
     const rulesTriggered = data.rules_triggered || [];

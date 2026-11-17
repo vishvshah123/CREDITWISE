@@ -31,19 +31,22 @@ def robust_float(v):
 
 app = FastAPI(title="CreditWise Loan Approval API", version="2.0")
 
+cors_origins_raw = os.getenv("CORS_ORIGINS", "*")
+cors_origins = [origin.strip() for origin in cors_origins_raw.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 try:
-    model = joblib.load(f"{MODELS_DIR}/best_model.pkl")
-    preprocessor = joblib.load(f"{MODELS_DIR}/preprocessor.pkl")
-    engineer = joblib.load(f"{MODELS_DIR}/feature_engineer.pkl")
-    config = joblib.load(f"{MODELS_DIR}/pipeline_config.pkl")
+    model = joblib.load(os.path.join(MODELS_DIR, "best_model.pkl"))
+    preprocessor = joblib.load(os.path.join(MODELS_DIR, "preprocessor.pkl"))
+    engineer = joblib.load(os.path.join(MODELS_DIR, "feature_engineer.pkl"))
+    config = joblib.load(os.path.join(MODELS_DIR, "pipeline_config.pkl"))
     opt_threshold = config['optimal_threshold']
 except Exception as e:
     print(f"Error loading models: {e}. Please run train.py first.")
@@ -105,7 +108,19 @@ def preprocess_input(app_data: LoanApplication):
 
 @app.get("/")
 def read_root():
-    return {"message": "CreditWise API v2.0 — POST /predict or /counterfactual"}
+    return {
+        "message": "CreditWise API v2.0 - POST /predict or /counterfactual",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy" if model is not None else "degraded",
+        "model_loaded": model is not None,
+        "optimal_threshold": float(opt_threshold) if opt_threshold is not None else 0.5
+    }
 
 @app.post("/debug-body")
 async def debug_body(request: Request):

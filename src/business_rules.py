@@ -38,7 +38,7 @@ def apply_rules(row: dict, prob: float) -> dict:
         adjusted_prob = min(adjusted_prob, 0.35)
 
     if row['Employment_Stability'] < RULES['min_employment']:
-        triggered.append("Employment < 6 months — insufficient stability")
+        triggered.append("Employment < 6 months - insufficient stability")
         adjusted_prob = min(adjusted_prob, 0.40)
 
     return {
